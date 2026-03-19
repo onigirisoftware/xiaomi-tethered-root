@@ -1,0 +1,28 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+
+# shellcheck source=lib/globals.sh
+source "$SCRIPT_DIR/lib/globals.sh"
+# shellcheck source=lib/console.sh
+source "$SCRIPT_DIR/lib/console.sh"
+# shellcheck source=lib/settings.sh
+source "$SCRIPT_DIR/lib/settings.sh"
+# shellcheck source=lib/android.sh
+source "$SCRIPT_DIR/lib/android.sh"
+# shellcheck source=lib/tools.sh
+source "$SCRIPT_DIR/lib/tools.sh"
+
+# shellcheck source=lib/menu/main.sh
+source "$SCRIPT_DIR/lib/menu/main.sh"
+# shellcheck source=lib/menu/settings.sh
+source "$SCRIPT_DIR/lib/menu/settings.sh"
+# shellcheck source=lib/menu/manager.sh
+source "$SCRIPT_DIR/lib/menu/manager.sh"
+# shellcheck source=lib/menu/root.sh
+source "$SCRIPT_DIR/lib/menu/root.sh"
+
+# Entry point
+init_data_dir
+main_menu
