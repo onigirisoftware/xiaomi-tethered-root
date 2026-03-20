@@ -8,8 +8,9 @@ export PATH
 MODULE_DIR="/data/adb/modules"
 
 ZYGISKSU_DIR="$MODULE_DIR/zygisksu"
+LSPOSED_DIR="$MODULE_DIR/zygisk_lsposed"
 
-ZYGISK_DEPS=""
+ZYGISK_DEPS="lspd"
 
 # --- Configuration ---
 
@@ -103,6 +104,67 @@ restart_zygote() {
 
     die "new system_server did not start"
 }
+# --- LSPosed ---
+LSPD_DATA_DIR="/data/adb/lspd"
+LSPOSED_LOG_DIR="$LSPD_DATA_DIR/log"
+
+launch_lsposed() {
+    echo "[*] Starting lsposed..."
+    rm -f "$LSPD_DATA_DIR/monitor" "$LSPD_DATA_DIR/lock" 2>/dev/null
+
+    _java_opts="-Djava.class.path=$LSPOSED_DIR/daemon.apk -Xnoimage-dex2oat"
+    setsid nsenter -t 1 -m -- /system/bin/sh -c "
+        cd $LSPOSED_DIR
+        export $BOOTCP
+        export $DEX2OAT
+        export PATH=$PATH
+        exec /system/bin/app_process $_java_opts /system/bin --nice-name=lspd org.lsposed.lspd.Main
+    " </dev/null >/dev/null 2>&1 &
+    sleep 3
+
+    LSPD_PID=$(find_pid lspd)
+    [ -n "$LSPD_PID" ] || die "lspd failed to start"
+
+    sleep 5
+    LSPD_PID=$(find_pid lspd)
+    [ -n "$LSPD_PID" ] || die "lspd crashed during init"
+}
+
+fix_lsposed_permission() {
+    chmod 644 "$LSPD_DATA_DIR/monitor" 2>/dev/null
+}
+
+ensure_lsposed_running() {
+    _retry=${1:-0}
+    if [ "$_retry" -ge 3 ]; then
+        echo "ERROR: bridge failed after 3 attempts, giving up"
+        return 1
+    fi
+
+    SS_PID=$(find_pid system_server)
+    _bridge=""
+
+    for _i in $(seq 1 60); do
+        sleep 1
+        _log=$(ls -t "$LSPOSED_LOG_DIR"/verbose_*.log 2>/dev/null | head -1)
+        if [ -n "$_log" ]; then
+            _bridge=$(grep "binder received" "$_log" 2>/dev/null | grep "$SS_PID" | tail -1)
+            if [ -n "$_bridge" ]; then
+                return 0
+            fi
+        fi
+    done
+
+    echo "WARNING: bridge not established, retrying (attempt $((_retry + 1))/3)..."
+    _log=$(ls -t "$LSPOSED_LOG_DIR"/verbose_*.log 2>/dev/null | head -1)
+    [ -n "$_log" ] && tail -15 "$_log"
+
+    kill -9 "$SS_PID"
+    sleep 3
+    ensure_lsposed_running $((_retry + 1))
+}
+# --- LSPosed ---
+
 
 main() {
     check_prerequisites
@@ -114,9 +176,26 @@ main() {
 
     echo "[*] Starting zygisk deps..."
 
+    if [ -d "$LSPOSED_DIR" ]; then
+        launch_lsposed
+    fi
+
     restart_zygote
+
+    echo "[*] Running pre-fix..."
+    if [ -d "$LSPOSED_DIR" ]; then
+        echo "[*] Fixing LSPosed..."
+        fix_lsposed_permission
+    fi
+
     echo "[+] Waiting 15s for system stability..."
     sleep 15
+
+    echo "[*] Running post-fix..."
+    if [ -d "$LSPOSED_DIR" ]; then
+        echo "[*] Fixing LSPosed..."
+        fix_lsposed_permission
+    fi
 }
 
 main
