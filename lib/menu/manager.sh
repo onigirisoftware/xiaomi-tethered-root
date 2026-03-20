@@ -78,8 +78,6 @@ _copy_and_extract_apk() {
         cp "$src" "$dest"
     fi
 
-    MANAGER_APK="$dest"
-
     extract_ksud_from_apk "$dest"
     _prompt_install_apk "$dest"
 

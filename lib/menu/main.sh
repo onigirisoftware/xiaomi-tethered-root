@@ -32,12 +32,7 @@ main_menu() {
 
 
 _print_status() {
-    local mgr_label ksud_label lsposed_label
-    if [[ -n "$MANAGER_APK" && -f "$MANAGER_APK" ]]; then
-        mgr_label="${GREEN}$(basename "$MANAGER_APK")${RESET}"
-    else
-        mgr_label="${DIM}none${RESET}"
-    fi
+    local ksud_label lsposed_label
 
     if [[ -f "$KSUD_PATH" ]]; then
         local sz
@@ -49,7 +44,6 @@ _print_status() {
 
     lsposed_label="$(setting_label "$SETTING_LSPOSED_FIX")"
 
-    echo -e "  Manager             : $mgr_label"
     echo -e "  ksud                : $ksud_label"
     echo -e "  Enable LSPosed fix  : $lsposed_label"
 }

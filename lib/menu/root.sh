@@ -2,7 +2,7 @@
 
 # --- Constants ---
 REMOTE_KSUD="/data/local/tmp/ksud"
-REMOTE_LOG="/sdcard/onigiri_software.log"
+REMOTE_LOG="/data/local/tmp/onigiri_software.log"
 
 action_root() {
     if [[ ! -f "$KSUD_PATH" ]]; then
