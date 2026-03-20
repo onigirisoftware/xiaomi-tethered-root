@@ -32,7 +32,7 @@ main_menu() {
 
 
 _print_status() {
-    local ksud_label lsposed_label
+    local ksud_label zigisk_fix_label
 
     if [[ -f "$KSUD_PATH" ]]; then
         local sz
@@ -42,8 +42,8 @@ _print_status() {
         ksud_label="${DIM}none${RESET}"
     fi
 
-    lsposed_label="$(setting_label "$SETTING_LSPOSED_FIX")"
+    zigisk_fix_label="$(setting_label "$SETTING_ZIGISK_FIX")"
 
-    echo -e "  ksud                : $ksud_label"
-    echo -e "  Enable LSPosed fix  : $lsposed_label"
+    echo -e "  ksud               : $ksud_label"
+    echo -e "  Enable Zigisk Fix  : $zigisk_fix_label"
 }

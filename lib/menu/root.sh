@@ -1,8 +1,13 @@
 #!/usr/bin/env bash
 
 # --- Constants ---
-REMOTE_KSUD="/data/local/tmp/ksud"
-REMOTE_LOG="/data/local/tmp/onigiri_software.log"
+FIX_SCRIPT_DIR="$SCRIPT_DIR/scripts"
+FIX_ZIGISK_SCRIPT_NAME="fix_zygisk.sh"
+
+REMOTE_DIR="/data/local/tmp"
+
+REMOTE_KSUD="$REMOTE_DIR/ksud"
+REMOTE_LOG="$REMOTE_DIR/onigiri_software.log"
 
 action_root() {
     if [[ ! -f "$KSUD_PATH" ]]; then
@@ -37,8 +42,8 @@ action_root() {
     _push_ksud_binary
     _do_jailbreak_root
 
-    if setting_enabled "$SETTING_LSPOSED_FIX"; then
-        _do_lsposed_fix
+    if setting_enabled "$SETTING_ZIGISK_FIX"; then
+        _do_zigisk_fix
     fi
 
     _wait_for_su_permission
@@ -126,10 +131,19 @@ _do_jailbreak_root() {
     fi
 }
 
-_do_lsposed_fix() {
-    log_info "Applying LSPosed fix..."
-    # TODO: implement LSPosed fix
-    log_warn "LSPosed fix: not implemented yet."
+_do_zigisk_fix() {
+    log_info "Applying Zigisk Fix..."
+
+    if ! adb push "$FIX_SCRIPT_DIR/$FIX_ZIGISK_SCRIPT_NAME" "$REMOTE_DIR/$FIX_ZIGISK_SCRIPT_NAME" >/dev/null 2>&1; then
+        log_fatal "Push failed. Check ADB connection."
+    fi
+
+
+    adb_shell "chmod 755 \"$REMOTE_DIR/$FIX_ZIGISK_SCRIPT_NAME\"" >/dev/null
+    log_ok "Zigisk Fix pushed and marked executable."
+
+    adb_shell "su -c \"$REMOTE_DIR/$FIX_ZIGISK_SCRIPT_NAME\""
+    log_ok "Zigisk Fix applied."
 }
 
 _wait_for_su_permission() {
@@ -156,6 +170,7 @@ _do_cleanup_trace() {
     
     adb_shell "rm $REMOTE_KSUD" >/dev/null || true
     adb_shell "rm $REMOTE_LOG" >/dev/null || true
+    adb_shell "rm $REMOTE_DIR/$FIX_ZIGISK_SCRIPT_NAME" >/dev/null || true
 }
 
 _done() {

@@ -8,14 +8,14 @@ menu_settings() {
         echo "  ║         Settings             ║"
         echo "  ╚══════════════════════════════╝"
         echo -e "${RESET}"
-        echo -e "  ${BOLD}1)${RESET}  LSPosed fix          $(setting_label "$SETTING_LSPOSED_FIX")"
+        echo -e "  ${BOLD}1)${RESET}  Zigisk Fix          $(setting_label "$SETTING_ZIGISK_FIX")"
         echo -e "  ${BOLD}2)${RESET}  Open data folder     ${DIM}($DATA_DIR)${RESET}"
         echo -e "  ${BOLD}b)${RESET}  Back"
         echo ""
         read -rp "  Choice: " choice
 
         case "$choice" in
-            1) _settings_toggle_lsposed ;;
+            1) _settings_toggle_zigisk_fix ;;
             2) _settings_open_data_folder ;;
             b|B) return ;;
             *) log_warn "Invalid option: '$choice'"; sleep 1 ;;
@@ -23,13 +23,13 @@ menu_settings() {
     done
 }
 
-_settings_toggle_lsposed() {
+_settings_toggle_zigisk_fix() {
     local new
-    new="$(setting_toggle "$SETTING_LSPOSED_FIX")"
+    new="$(setting_toggle "$SETTING_ZIGISK_FIX")"
     if [[ "$new" == "1" ]]; then
-        log_ok "LSPosed fix enabled — runs during root."
+        log_ok "Zigisk Fix enabled."
     else
-        log_warn "LSPosed fix disabled."
+        log_warn "Zigisk Fix disabled."
     fi
     sleep 1
 }
