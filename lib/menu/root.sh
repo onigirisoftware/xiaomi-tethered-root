@@ -59,16 +59,15 @@ _ensure_fastboot() {
 
     log_info "Waiting for fastboot device..."
 
-    local timeout=60 elapsed=0
-    until fastboot devices 2>/dev/null | grep -q "fastboot"; do
-        sleep 1
-        (( elapsed++ ))
-        if (( elapsed >= timeout )); then
-            log_fatal "Timed out after ${timeout}s. Check USB connection."
+    for i in {1..60}; do
+        if fastboot devices 2>/dev/null | grep -q "fastboot"; then
+            log_ok "Fastboot device ready."
+            return 0
         fi
+        sleep 1
     done
-
-    log_ok "Fastboot device ready."
+    
+    log_fatal "Timed out after 60s. Check USB connection."
 }
 
 _boot_with_permissive_selinux() {
