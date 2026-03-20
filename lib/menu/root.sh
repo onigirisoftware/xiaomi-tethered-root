@@ -42,11 +42,11 @@ action_root() {
     _push_ksud_binary
     _do_jailbreak_root
 
+    _wait_for_su_permission
+
     if setting_enabled "$SETTING_ZIGISK_FIX"; then
         _do_zigisk_fix
     fi
-
-    _wait_for_su_permission
 
     _do_cleanup_trace
     _done
@@ -142,7 +142,7 @@ _do_zigisk_fix() {
     adb_shell "chmod 755 \"$REMOTE_DIR/$FIX_ZIGISK_SCRIPT_NAME\"" >/dev/null
     log_ok "Zigisk Fix pushed and marked executable."
 
-    adb_shell "su -c \"$REMOTE_DIR/$FIX_ZIGISK_SCRIPT_NAME\""
+    adb_shell "su -c \"$REMOTE_DIR/$FIX_ZIGISK_SCRIPT_NAME || exit 0\""
     log_ok "Zigisk Fix applied."
 }
 
