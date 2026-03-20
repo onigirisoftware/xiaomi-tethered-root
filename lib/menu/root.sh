@@ -66,20 +66,20 @@ _ensure_fastboot() {
         fi
         sleep 1
     done
-    
+
     log_fatal "Timed out after 60s. Check USB connection."
 }
 
 _boot_with_permissive_selinux() {
     log_info "Setting SELinux to permissive..."
 
-    if fastboot oem set-gpu-preemption 0 androidboot.selinux=permissive; then
+    if fastboot oem set-gpu-preemption 0 androidboot.selinux=permissive >/dev/null 2>&1; then
         log_ok "Sent permissive boot command."
     else
         log_fatal "set SELinux to permissive command failed."
     fi
 
-    if ! fastboot continue; then
+    if ! fastboot continue >/dev/null 2>&1; then
         log_fatal "fastboot continue failed."
     fi
 
@@ -89,15 +89,16 @@ _boot_with_permissive_selinux() {
 _waiting_device_ready() {
     log_info "Waiting for ADB..."
     adb wait-for-device
+
     log_ok "ADB connected."
     wait_for_unlock
 }
 
 _verify_permissive_selinux() {
     log_info "Verifying SELinux state..."
+
     local state
     state="$(adb_shell getenforce)"
-    
     state="${state//$'\r'/}"
     
     if [[ "$state" != "Permissive" ]]; then
@@ -109,10 +110,10 @@ _verify_permissive_selinux() {
 
 _push_ksud_binary() {
     log_info "Pushing ksud to /data/local/tmp..."
-    if ! adb push "$KSUD_PATH" "$REMOTE_KSUD"; then
+    if ! adb push "$KSUD_PATH" "$REMOTE_KSUD" >/dev/null 2>&1; then
         log_fatal "Push failed. Check ADB connection."
     fi
-    adb_shell chmod 755 "$REMOTE_KSUD"
+    adb_shell "chmod 755 \"$REMOTE_KSUD\"" >/dev/null
     log_ok "ksud pushed and marked executable."
 }
 
@@ -150,11 +151,11 @@ _wait_for_su_permission() {
 _do_cleanup_trace() {
     log_info "Cleaning up trace and restoring SELinux..."
 
-    adb_shell "su -c \"setenforce 1\""
-    adb_shell "su -c \"resetprop -n ro.boot.selinux enforcing\""
+    adb_shell "su -c \"setenforce 1\"" >/dev/null
+    adb_shell "su -c \"resetprop -n ro.boot.selinux enforcing\"" >/dev/null
     
-    adb_shell "rm $REMOTE_KSUD 2>/dev/null" || true
-    adb_shell "rm $REMOTE_LOG 2>/dev/null" || true
+    adb_shell "rm $REMOTE_KSUD" >/dev/null || true
+    adb_shell "rm $REMOTE_LOG" >/dev/null || true
 }
 
 _done() {
